@@ -52,8 +52,9 @@ class ViewJWidget(QDockWidget):
 
     def item_text(self, view_id):
         view_id_i = self.p.matching.get_view_id_i()
-        return '(ID={}, K={}, M={}) {}'.format(
+        return '(ID={}, K={}, KN={}, M={}) {}'.format(
             view_id,
             self.p.matching.get_keypoint_count(view_id),
+            self.p.matching.get_keypoint_none_count(view_id),
             self.p.matching.get_match_count(view_id_i, view_id),
             self.p.matching.get_filename(view_id))

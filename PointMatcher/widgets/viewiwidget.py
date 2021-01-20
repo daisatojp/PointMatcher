@@ -51,8 +51,9 @@ class ViewIWidget(QDockWidget):
             self.viewListWidget.item(i).setText(self.item_text(list_of_view_id[i]))
 
     def item_text(self, view_id):
-        return '(ID={}, K={}, P={}) {}'.format(
+        return '(ID={}, K={}, KN={}, P={}) {}'.format(
             view_id,
             self.p.matching.get_keypoint_count(view_id),
+            self.p.matching.get_keypoint_none_count(view_id),
             self.p.matching.get_pair_count(view_id),
             self.p.matching.get_filename(view_id))

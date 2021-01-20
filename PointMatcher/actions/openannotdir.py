@@ -36,12 +36,12 @@ class OpenAnnotDirAction(QAction):
             QFD.ShowDirsOnly | QFD.DontResolveSymlinks)
         if osp.isdir(annotDir):
             views_dir = osp.join(annotDir, 'views')
-            groups_path = osp.join(annotDir, 'groups.json')
+            groups_dir = osp.join(annotDir, 'groups')
             if not osp.isdir(views_dir):
                 QMessageBox.warning(self.p, 'Error', '{} not found'.format(views_dir), QMessageBox.Ok)
                 return
-            if not osp.isfile(groups_path):
-                QMessageBox.warning(self.p, 'Error', '{} not found'.format(groups_path), QMessageBox.Ok)
+            if not osp.isdir(groups_dir):
+                QMessageBox.warning(self.p, 'Error', '{} not found'.format(groups_dir), QMessageBox.Ok)
                 return
             self.p.annotDir = annotDir
             self.p.loadMatching()

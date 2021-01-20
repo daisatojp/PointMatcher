@@ -10,16 +10,17 @@ from PointMatcher.data.matching import Matching
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('annot_dir')
+    parser.add_argument('--correction', action='store_true')
     args = parser.parse_args()
 
     matching = Matching(args.annot_dir)
 
-    with open(osp.join(args.annot_dir, 'groups.json'), 'r') as f:
-        groups = json.load(f)
-
     num_1 = 0
     keys_1 = []
-    for group in groups['groups']:
+    group_paths = glob(osp.join(args.annot_dir, 'groups', '*.json'))
+    for group_path in group_paths:
+        with open(group_path, 'r') as f:
+            group = json.load(f)
         num_1 += len(group['keypoints'])
         keys_1 += group['keypoints']
 
@@ -44,16 +45,45 @@ def main():
     print('keys_1 duplicates', [item for item, count in Counter(map(tuple, keys_1)).items() if count > 1])
     print('keys_2 duplicates', [item for item, count in Counter(map(tuple, keys_2)).items() if count > 1])
 
-    for group in groups['groups']:
+    print('check consistency between view and group file')
+    for group_path in group_paths:
+        with open(group_path, 'r') as f:
+            group = json.load(f)
         gid = group['id']
         for gk in group['keypoints']:
             keypoint = matching.get_keypoint(gk[0], gk[1])
             if keypoint['group_id'] != gid:
                 print('wrong vid={}, kid={}, gid={}'.format(gk[0], gk[1], gid))
 
-    for group in groups['groups']:
-        if 0 < len([item for item, count in Counter(map(tuple, group['keypoints'])).items() if count > 1]):
+    print('check duplicate view_id in a group')
+    for group_path in group_paths:
+        with open(group_path, 'r') as f:
+            group = json.load(f)
+        view_ids = [keypoint[0] for keypoint in group['keypoints']]
+        if 0 < len([item for item, count in Counter(view_ids).items() if count > 1]):
             print('wrong gid={}'.format(group['id']))
+
+    print('check empty group')
+    for group_path in group_paths:
+        with open(group_path, 'r') as f:
+            group = json.load(f)
+        if len(group['keypoints']) == 0:
+            print('wrong gid={}'.format(group['id']))
+
+    print('check group ids that keypoints of views have')
+    list_of_group_id = matching.get_list_of_group_id()
+    for view_id in matching.get_list_of_view_id():
+        keypoints = matching.get_keypoints(view_id)
+        for keypoint in keypoints:
+            gid = keypoint['group_id']
+            if (gid is not None) and (gid not in list_of_group_id):
+                print('wrong vid={}'.format(view_id))
+                if args.correction:
+                    matching.set_keypoint_group_id(view_id, keypoint['id'], None)
+                    print('correct')
+
+    if args.correction:
+        matching.save()
 
     print('sanity check finish.')
 
